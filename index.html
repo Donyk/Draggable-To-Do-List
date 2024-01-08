@@ -20,7 +20,7 @@
     <ul id="taskList"></ul>
 
     <script>
-        let taskIdCounter = 0;
+        let taskIdCounter = 0; // Initialize a counter for task IDs
 
         document.getElementById('addTaskButton').addEventListener('click', addTaskFromInput);
         document.getElementById('taskInput').addEventListener('keypress', function(e) {
@@ -37,33 +37,45 @@
             }
         }
 
-        function addTask(taskValue) {
+        function addTask(taskValue, id, completed = false) {
             var taskList = document.getElementById('taskList');
             var li = document.createElement('li');
             li.textContent = taskValue;
             li.draggable = true;
-            li.id = 'task-' + taskIdCounter++; // Assign a unique ID
             li.classList.add('draggable');
             li.addEventListener('dragstart', handleDragStart);
             li.addEventListener('dragover', handleDragOver);
             li.addEventListener('drop', handleDrop);
 
+            // Set the ID of the new task only if it's not provided
+            if (!id) {
+                li.id = 'task-' + taskIdCounter++;
+            } else {
+                li.id = id;
+                if (completed) {
+                    li.classList.add('completed');
+                }
+            }
+
             var completeButton = createButton('Complete', function() {
                 li.classList.toggle('completed');
+                saveTasks(); // Save when a task is completed
             });
 
             var deleteButton = createButton('Delete', function() {
-                taskList.removeChild(li);
+                deleteTask(li);
             });
 
             var editButton = createButton('Edit', function() {
-                editTask(li, taskValue);
+                editTask(li, li.textContent);
             });
 
             li.appendChild(completeButton);
             li.appendChild(deleteButton);
             li.appendChild(editButton);
             taskList.appendChild(li);
+
+            saveTasks(); // Save tasks whenever a new task is added
         }
 
         function createButton(text, onClick) {
@@ -76,24 +88,55 @@
         function editTask(listItem, oldValue) {
             var input = document.createElement('input');
             input.type = 'text';
-            input.value = oldValue;
+            input.value = oldValue.replace(/CompleteDeleteEdit$/, ''); // Remove button labels from task content
             listItem.innerHTML = '';
             listItem.appendChild(input);
 
+            input.focus();
+            input.addEventListener('blur', function() {
+                endEdit(listItem, input.value);
+            });
             input.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    listItem.textContent = input.value;
-                    listItem.appendChild(createButton('Complete', function() {
-                        listItem.classList.toggle('completed');
-                    }));
-                    listItem.appendChild(createButton('Delete', function() {
-                        listItem.parentElement.removeChild(listItem);
-                    }));
-                    listItem.appendChild(createButton('Edit', function() {
-                        editTask(listItem, listItem.textContent);
-                    }));
+                    endEdit(listItem, input.value);
                 }
             });
+        }
+
+        function endEdit(listItem, newValue) {
+            listItem.textContent = newValue;
+            addButtons(listItem);
+            saveTasks(); // Save the task list after editing a task
+        }
+
+        function addButtons(listItem) {
+            var completeButton = createButton('Complete', function() {
+                listItem.classList.toggle('completed');
+                saveTasks(); // Save when a task is completed
+            });
+
+            var deleteButton = createButton('Delete', function() {
+                deleteTask(listItem);
+            });
+
+            var editButton = createButton('Edit', function() {
+                editTask(listItem, listItem.textContent);
+            });
+
+            listItem.appendChild(completeButton);
+            listItem.appendChild(deleteButton);
+            listItem.appendChild(editButton);
+
+            listItem.draggable = true;
+            listItem.classList.add('draggable');
+            listItem.addEventListener('dragstart', handleDragStart);
+            listItem.addEventListener('dragover', handleDragOver);
+            listItem.addEventListener('drop', handleDrop);
+        }
+
+        function deleteTask(listItem) {
+            listItem.parentNode.removeChild(listItem);
+            saveTasks(); // Save the task list after deleting a task
         }
 
         function handleDragStart(e) {
@@ -114,44 +157,6 @@
         function handleDragOver(e) {
             e.preventDefault();
         }
-  
-        // Add these functions within your <script> tag
-  
-        function saveTasks() {
-            var tasks = [];
-            document.querySelectorAll('#taskList li').forEach(li => {
-                tasks.push({ content: li.textContent, id: li.id, completed: li.classList.contains('completed') });
-            });
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-        }
-  
-        function loadTasks() {
-            var tasks = JSON.parse(localStorage.getItem('tasks'));
-            if (tasks) {
-                tasks.forEach(task => {
-                    addTask(task.content, task.id, task.completed);
-                });
-            }
-        }
-  
-        function addTask(taskValue, id, completed = false) {
-            // Existing code for adding a task...
-            // Set the ID of the new task only if it's not provided
-            if (!id) {
-                li.id = 'task-' + taskIdCounter++;
-            } else {
-                li.id = id;
-            }
-            if (completed) {
-                li.classList.add('completed');
-            }
-            // Existing code for adding buttons...
-            saveTasks(); // Save tasks whenever a new task is added
-        }
-  
-        // Call loadTasks() when the page loads
-        document.addEventListener('DOMContentLoaded', loadTasks);
-        
     </script>
 </body>
 </html>
