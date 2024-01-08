@@ -114,6 +114,44 @@
         function handleDragOver(e) {
             e.preventDefault();
         }
+  
+        // Add these functions within your <script> tag
+  
+        function saveTasks() {
+            var tasks = [];
+            document.querySelectorAll('#taskList li').forEach(li => {
+                tasks.push({ content: li.textContent, id: li.id, completed: li.classList.contains('completed') });
+            });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+  
+        function loadTasks() {
+            var tasks = JSON.parse(localStorage.getItem('tasks'));
+            if (tasks) {
+                tasks.forEach(task => {
+                    addTask(task.content, task.id, task.completed);
+                });
+            }
+        }
+  
+        function addTask(taskValue, id, completed = false) {
+            // Existing code for adding a task...
+            // Set the ID of the new task only if it's not provided
+            if (!id) {
+                li.id = 'task-' + taskIdCounter++;
+            } else {
+                li.id = id;
+            }
+            if (completed) {
+                li.classList.add('completed');
+            }
+            // Existing code for adding buttons...
+            saveTasks(); // Save tasks whenever a new task is added
+        }
+  
+        // Call loadTasks() when the page loads
+        document.addEventListener('DOMContentLoaded', loadTasks);
+        
     </script>
 </body>
 </html>
