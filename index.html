@@ -32,10 +32,11 @@
         function addTaskFromInput() {
             var taskValue = document.getElementById('taskInput').value;
             if (taskValue) {
-                addTask(taskValue);
-                document.getElementById('taskInput').value = '';
+                addTask(taskValue); // No need to pass id or completed status here
+                document.getElementById('taskInput').value = ''; // Clear the input box
             }
         }
+
 
         function addTask(taskValue, id, completed = false) {
             var taskList = document.getElementById('taskList');
