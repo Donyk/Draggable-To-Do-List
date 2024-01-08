@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draggable To-Do List</title>
+    <style>
+        .completed {
+            text-decoration: line-through;
+        }
+        .draggable {
+            cursor: move;
+        }
+    </style>
+</head>
+<body>
+    <h2>Draggable To-Do List</h2>
+    <input type="text" id="taskInput" placeholder="Enter a task">
+    <button id="addTaskButton">Add Task</button>
+    <ul id="taskList"></ul>
+
+    <script>
+        let taskIdCounter = 0;
+
+        document.getElementById('addTaskButton').addEventListener('click', addTaskFromInput);
+        document.getElementById('taskInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTaskFromInput();
+            }
+        });
+
+        function addTaskFromInput() {
+            var taskValue = document.getElementById('taskInput').value;
+            if (taskValue) {
+                addTask(taskValue);
+                document.getElementById('taskInput').value = '';
+            }
+        }
+
+        function addTask(taskValue) {
+            var taskList = document.getElementById('taskList');
+            var li = document.createElement('li');
+            li.textContent = taskValue;
+            li.draggable = true;
+            li.id = 'task-' + taskIdCounter++; // Assign a unique ID
+            li.classList.add('draggable');
+            li.addEventListener('dragstart', handleDragStart);
+            li.addEventListener('dragover', handleDragOver);
+            li.addEventListener('drop', handleDrop);
+
+            var completeButton = createButton('Complete', function() {
+                li.classList.toggle('completed');
+            });
+
+            var deleteButton = createButton('Delete', function() {
+                taskList.removeChild(li);
+            });
+
+            var editButton = createButton('Edit', function() {
+                editTask(li, taskValue);
+            });
+
+            li.appendChild(completeButton);
+            li.appendChild(deleteButton);
+            li.appendChild(editButton);
+            taskList.appendChild(li);
+        }
+
+        function createButton(text, onClick) {
+            var button = document.createElement('button');
+            button.textContent = text;
+            button.onclick = onClick;
+            return button;
+        }
+
+        function editTask(listItem, oldValue) {
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.value = oldValue;
+            listItem.innerHTML = '';
+            listItem.appendChild(input);
+
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    listItem.textContent = input.value;
+                    listItem.appendChild(createButton('Complete', function() {
+                        listItem.classList.toggle('completed');
+                    }));
+                    listItem.appendChild(createButton('Delete', function() {
+                        listItem.parentElement.removeChild(listItem);
+                    }));
+                    listItem.appendChild(createButton('Edit', function() {
+                        editTask(listItem, listItem.textContent);
+                    }));
+                }
+            });
+        }
+
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.id);
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            var data = e.dataTransfer.getData('text/plain');
+            var draggedElement = document.getElementById(data);
+            var dropTarget = e.target.closest('li.draggable');
+            if (dropTarget && draggedElement) {
+                var list = dropTarget.parentNode;
+                list.insertBefore(draggedElement, dropTarget.nextSibling);
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+    </script>
+</body>
+</html>
